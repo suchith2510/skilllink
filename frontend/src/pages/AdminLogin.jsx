@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_ENDPOINTS from '../config.js';
 
 function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError(null);
-    setIsLoading(true);
 
     try {
-      console.log('Attempting admin login with:', { email, password });
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,31 +24,19 @@ function AdminLogin() {
       });
 
       const data = await response.json();
-      console.log('Login response:', data);
-      
-      if (response.ok) {
-        // Check if user is admin
-        console.log('User role:', data.user.role);
-        if (data.user.role === 'admin') {
-          console.log('Admin login successful, setting localStorage...');
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('role', 'admin');
-          localStorage.setItem('email', email);
-          console.log('localStorage set, navigating to admin dashboard...');
-          navigate('/admin-dashboard');
-        } else {
-          console.log('Access denied - user is not admin');
-          setError('Access denied. Admin privileges required.');
-        }
+
+      if (response.ok && data.user.role === 'admin') {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role);
+        localStorage.setItem('email', data.user.email);
+        navigate('/admin-dashboard');
       } else {
-        console.log('Login failed:', data.error);
-        setError(data.error || 'Login failed');
+        setError('Invalid credentials or insufficient privileges');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Error connecting to the server: ' + err.message);
+      setError('Login failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -87,7 +75,7 @@ function AdminLogin() {
             {error}
           </p>
         )}
-        <form onSubmit={handleSubmit} style={{
+        <form onSubmit={handleLogin} style={{
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
@@ -98,7 +86,7 @@ function AdminLogin() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={isLoading}
+            disabled={loading}
             style={{
               padding: '0.75rem',
               borderRadius: '8px',
@@ -107,7 +95,7 @@ function AdminLogin() {
               border: '1px solid rgba(255, 255, 255, 0.2)',
               fontSize: '1rem',
               outline: 'none',
-              opacity: isLoading ? 0.7 : 1,
+              opacity: loading ? 0.7 : 1,
             }}
           />
           <input
@@ -116,7 +104,7 @@ function AdminLogin() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            disabled={isLoading}
+            disabled={loading}
             style={{
               padding: '0.75rem',
               borderRadius: '8px',
@@ -125,15 +113,15 @@ function AdminLogin() {
               border: '1px solid rgba(255, 255, 255, 0.2)',
               fontSize: '1rem',
               outline: 'none',
-              opacity: isLoading ? 0.7 : 1,
+              opacity: loading ? 0.7 : 1,
             }}
           />
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={loading}
             style={{
               padding: '0.75rem',
-              background: isLoading 
+              background: loading 
                 ? 'rgba(168, 85, 247, 0.5)' 
                 : 'linear-gradient(90deg, #A855F7 0%, #7C3AED 100%)',
               color: '#FFFFFF',
@@ -141,14 +129,14 @@ function AdminLogin() {
               borderRadius: '8px',
               fontSize: '1rem',
               fontWeight: '500',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'transform 0.3s ease',
-              opacity: isLoading ? 0.7 : 1,
+              opacity: loading ? 0.7 : 1,
             }}
-            onMouseOver={(e) => !isLoading && (e.target.style.transform = 'translateY(-2px)')}
-            onMouseOut={(e) => !isLoading && (e.target.style.transform = 'translateY(0)')}
+            onMouseOver={(e) => !loading && (e.target.style.transform = 'translateY(-2px)')}
+            onMouseOut={(e) => !loading && (e.target.style.transform = 'translateY(0)')}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
         

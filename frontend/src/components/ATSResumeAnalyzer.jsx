@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import API_ENDPOINTS from '../config.js';
 
 const ATSResumeAnalyzer = () => {
   const [file, setFile] = useState(null);
@@ -65,13 +66,19 @@ const ATSResumeAnalyzer = () => {
       const formData = new FormData();
       formData.append('resume', file);
 
-      const response = await axios.post('http://localhost:3000/api/interview/analyze-resume', formData, {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(API_ENDPOINTS.INTERVIEW.ANALYZE_RESUME, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         }
       });
 
-      setAnalysis(response.data);
+      if (response.data.questions && response.data.questions.length > 0) {
+        setAnalysis(response.data);
+      } else {
+        setAnalysis({ message: 'No matching skills found in resume' });
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to analyze resume. Please try again.');
     } finally {

@@ -1,63 +1,82 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import API_ENDPOINTS from '../config.js';
 
 function Upgrade() {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
-  const plans = {
-    monthly: {
+  const plans = [
+    {
+      id: 'monthly',
       name: 'Monthly Premium',
-      price: 9.99,
+      price: '$9.99',
+      period: 'month',
       features: [
-        'Unlimited skill listings',
-        'Direct connections with users',
-        'Priority support',
-        'Advanced search filters',
-        'Skill verification badge'
-      ]
+        'Access to all tutorials',
+        'SkillSwap marketplace',
+        'Interview preparation tools',
+        'Resume analyzer',
+        'Priority support'
+      ],
+      popular: false
     },
-    yearly: {
+    {
+      id: 'yearly',
       name: 'Yearly Premium',
-      price: 99.99,
+      price: '$99.99',
+      period: 'year',
       features: [
-        'All Monthly Premium features',
-        'Save 17% compared to monthly',
-        'Exclusive premium community access',
-        'Early access to new features',
-        'Priority skill matching'
-      ]
+        'Everything in Monthly',
+        '2 months free',
+        'Exclusive content',
+        'Advanced analytics',
+        'Early access to new features'
+      ],
+      popular: true
     }
-  };
+  ];
 
-  const handleSubscribe = async () => {
+  const handleUpgrade = async () => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/upgrade' } });
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/subscription/upgrade', {
+      const response = await fetch(API_ENDPOINTS.SUBSCRIPTION.UPGRADE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ plan: selectedPlan }),
+        body: JSON.stringify({
+          plan: selectedPlan
+        })
       });
 
       const data = await response.json();
+
       if (response.ok) {
-        // In a real application, you would handle payment processing here
-        // For now, we'll just simulate a successful subscription
-        alert('Subscription successful! Welcome to Premium!');
-        navigate('/skill-swap');
+        setSuccess('Upgrade successful! Welcome to Premium!');
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
       } else {
-        setError(data.error || 'Failed to process subscription');
+        setError(data.error || 'Upgrade failed. Please try again.');
       }
     } catch (err) {
-      setError('Error connecting to the server: ' + err.message);
+      setError('Network error. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -88,18 +107,18 @@ function Upgrade() {
         gap: '2rem',
         marginBottom: '3rem',
       }}>
-        {Object.entries(plans).map(([key, plan]) => (
+        {plans.map((plan) => (
           <div
-            key={key}
+            key={plan.id}
             style={{
               padding: '2rem',
-              background: selectedPlan === key ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              background: selectedPlan === plan.id ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255, 255, 255, 0.05)',
               borderRadius: '16px',
-              border: `2px solid ${selectedPlan === key ? '#A855F7' : 'rgba(255, 255, 255, 0.1)'}`,
+              border: `2px solid ${selectedPlan === plan.id ? '#A855F7' : 'rgba(255, 255, 255, 0.1)'}`,
               cursor: 'pointer',
               transition: 'transform 0.3s ease, box-shadow 0.3s ease',
             }}
-            onClick={() => setSelectedPlan(key)}
+            onClick={() => setSelectedPlan(plan.id)}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
               e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
@@ -124,13 +143,13 @@ function Upgrade() {
               marginBottom: '1.5rem',
               fontWeight: 'bold',
             }}>
-              ${plan.price}
+              {plan.price}
               <span style={{
                 fontSize: '1rem',
                 color: '#A0AEC0',
                 marginLeft: '0.5rem',
               }}>
-                /{key === 'monthly' ? 'month' : 'year'}
+                /{plan.period}
               </span>
             </div>
             <ul style={{
@@ -158,13 +177,13 @@ function Upgrade() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleSubscribe();
+                handleUpgrade();
               }}
               disabled={loading}
               style={{
                 width: '100%',
                 padding: '1rem',
-                background: selectedPlan === key
+                background: selectedPlan === plan.id
                   ? 'linear-gradient(90deg, #A855F7 0%, #7C3AED 100%)'
                   : 'rgba(168, 85, 247, 0.2)',
                 color: '#FFFFFF',
@@ -202,6 +221,20 @@ function Upgrade() {
           marginBottom: '2rem',
         }}>
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div style={{
+          padding: '1rem',
+          background: 'rgba(107, 114, 128, 0.1)',
+          borderRadius: '8px',
+          border: '1px solid rgba(107, 114, 128, 0.2)',
+          color: '#6B7280',
+          textAlign: 'center',
+          marginBottom: '2rem',
+        }}>
+          {success}
         </div>
       )}
 

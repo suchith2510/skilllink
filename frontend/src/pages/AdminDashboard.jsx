@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import API_ENDPOINTS from '../config.js';
 
 function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -40,9 +41,9 @@ function AdminDashboard() {
 
       // Fetch all data in parallel
       const [statsRes, usersRes, sessionsRes] = await Promise.all([
-        fetch('http://localhost:3000/api/auth/stats', { headers }),
-        fetch('http://localhost:3000/api/auth/users', { headers }),
-        fetch('http://localhost:3000/api/auth/sessions', { headers })
+        fetch(API_ENDPOINTS.AUTH.STATS, { headers }),
+        fetch(API_ENDPOINTS.AUTH.USERS, { headers }),
+        fetch(API_ENDPOINTS.AUTH.SESSIONS, { headers })
       ]);
 
       if (!statsRes.ok || !usersRes.ok || !sessionsRes.ok) {

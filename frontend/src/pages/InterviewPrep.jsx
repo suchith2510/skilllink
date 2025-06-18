@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import API_ENDPOINTS from '../config.js';
 import ATSResumeAnalyzer from '../components/ATSResumeAnalyzer';
 
 function InterviewPrep() {
@@ -35,7 +36,7 @@ function InterviewPrep() {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/interview/questions');
+      const response = await fetch(API_ENDPOINTS.INTERVIEW.QUESTIONS);
       const data = await response.json();
       if (response.ok) {
         setQuestions(data.questions || []);
@@ -63,7 +64,7 @@ function InterviewPrep() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/interview/predict', {
+      const response = await fetch(API_ENDPOINTS.INTERVIEW.PREDICT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
