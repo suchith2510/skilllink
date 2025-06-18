@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import API_ENDPOINTS from '../config.js';
 
 const AuthContext = createContext(null);
 
@@ -22,7 +23,7 @@ export function AuthProvider({ children }) {
   const fetchUserData = async (token) => {
     try {
       console.log('Fetching user data...'); // Debug log
-      const response = await fetch('http://localhost:3000/api/auth/profile', {
+      const response = await fetch(API_ENDPOINTS.AUTH.PROFILE, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -54,7 +55,7 @@ export function AuthProvider({ children }) {
   const register = async (userData) => {
     try {
       console.log('Attempting registration with:', userData); // Debug log
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -75,7 +76,7 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     try {
       console.log('Attempting login with:', credentials); // Debug log
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -100,7 +101,7 @@ export function AuthProvider({ children }) {
       const token = localStorage.getItem('token');
       if (token) {
         // Call backend logout endpoint
-        await fetch('http://localhost:3000/api/auth/logout', {
+        await fetch(API_ENDPOINTS.AUTH.LOGOUT, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
