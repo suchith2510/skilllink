@@ -102,11 +102,24 @@ const tutorialCategories = [
 
 function Tutorials() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoggedIn } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('web-dev');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTutorials, setFilteredTutorials] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState('all');
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/tutorials' } });
+      return;
+    }
+  }, [isLoggedIn, navigate]);
+
+  // Don't render anything if not logged in
+  if (!isLoggedIn) {
+    return null;
+  }
 
   useEffect(() => {
     const category = tutorialCategories.find(cat => cat.id === selectedCategory);

@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import ATSResumeAnalyzer from '../components/ATSResumeAnalyzer';
 
 function InterviewPrep() {
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState('interview'); // 'interview' or 'resume'
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -10,6 +14,19 @@ function InterviewPrep() {
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/interview-prep' } });
+      return;
+    }
+  }, [isLoggedIn, navigate]);
+
+  // Don't render anything if not logged in
+  if (!isLoggedIn) {
+    return null;
+  }
 
   useEffect(() => {
     fetchQuestions();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from '../components/Toast';
 
@@ -11,6 +11,10 @@ function Login() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the redirect path from location state, default to home
+  const from = location.state?.from || '/';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,7 +28,7 @@ function Login() {
       console.log('Login successful, showing toast...');
       setShowSuccessToast(true);
       setTimeout(() => {
-        navigate('/');
+        navigate(from);
       }, 1500);
     } catch (error) {
       console.error('Login error in component:', error);

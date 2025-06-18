@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 // Programming languages with their respective quizzes
 const programmingLanguages = [
@@ -1168,7 +1169,7 @@ const programmingLanguages = [
 
 function Quizzes() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isLoggedIn } = useAuth();
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -1177,18 +1178,18 @@ function Quizzes() {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showExplanation, setShowExplanation] = useState(false);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    // Check authentication using localStorage token
-    const token = localStorage.getItem('token');
-    const isUserLoggedIn = token && token.length > 0;
-    setIsAuthenticated(isUserLoggedIn);
-
-    if (!isUserLoggedIn) {
-      // Store the current path for redirect after login
-      localStorage.setItem('quizRedirect', '/quizzes');
-      navigate('/login');
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/quizzes' } });
+      return;
     }
-  }, [navigate]);
+  }, [isLoggedIn, navigate]);
+
+  // Don't render anything if not logged in
+  if (!isLoggedIn) {
+    return null;
+  }
 
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language);

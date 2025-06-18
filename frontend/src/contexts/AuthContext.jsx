@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
   const fetchUserData = async (token) => {
     try {
       console.log('Fetching user data...'); // Debug log
-      const response = await fetch('http://localhost:3000/api/profile', {
+      const response = await fetch('http://localhost:3000/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -30,16 +30,22 @@ export function AuthProvider({ children }) {
       if (response.ok) {
         const userData = await response.json();
         console.log('User data fetched:', userData); // Debug log
+        localStorage.setItem('role', userData.role);
+        localStorage.setItem('email', userData.email);
         setUser(userData);
       } else {
         console.log('Invalid token, clearing auth state'); // Debug log
         localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('email');
         setIsLoggedIn(false);
         setUser(null);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('email');
       setIsLoggedIn(false);
       setUser(null);
     }
@@ -58,6 +64,8 @@ export function AuthProvider({ children }) {
       console.log('Registration response data:', data); // Debug log
       if (!response.ok) { throw new Error(data.error || 'Registration failed'); }
       localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.user.role);
+      localStorage.setItem('email', data.user.email);
       setIsLoggedIn(true);
       setUser(data.user);
       return true;
@@ -77,6 +85,8 @@ export function AuthProvider({ children }) {
       console.log('Login response data:', data); // Debug log
       if (!response.ok) { throw new Error(data.error || 'Login failed'); }
       localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.user.role);
+      localStorage.setItem('email', data.user.email);
       setIsLoggedIn(true);
       setUser(data.user);
       console.log('Login successful, user state updated'); // Debug log
@@ -84,12 +94,29 @@ export function AuthProvider({ children }) {
     } catch (error) { console.error('Login error in AuthContext:', error); throw error; }
   };
 
-  const logout = () => {
+  const logout = async () => {
     console.log('Logging out...'); // Debug log
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    setUser(null);
-    console.log('Logout complete'); // Debug log
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Call backend logout endpoint
+        await fetch('http://localhost:3000/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('email');
+      setIsLoggedIn(false);
+      setUser(null);
+      console.log('Logout complete'); // Debug log
+    }
   };
 
   const value = {
@@ -99,6 +126,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    isAdmin: user?.role === 'admin',
   };
 
   return (

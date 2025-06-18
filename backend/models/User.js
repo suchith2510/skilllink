@@ -45,6 +45,19 @@ const userSchema = new mongoose.Schema({
       default: 'none',
     }
   },
+  // New fields for login tracking
+  lastLoginAt: {
+    type: Date,
+    default: null,
+  },
+  loginCount: {
+    type: Number,
+    default: 0,
+  },
+  isOnline: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

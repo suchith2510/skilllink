@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function SkillSwap() {
   const [skills, setSkills] = useState([]);
@@ -20,10 +21,22 @@ function SkillSwap() {
   });
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
+  const { user, isLoggedIn, isAdmin } = useAuth();
 
-  const userEmail = localStorage.getItem('email') || '';
-  const userRole = localStorage.getItem('role') || '';
-  const isAdmin = userRole === 'admin';
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/skill-swap' } });
+      return;
+    }
+  }, [isLoggedIn, navigate]);
+
+  // Don't render anything if not logged in
+  if (!isLoggedIn) {
+    return null;
+  }
+
+  const userEmail = user?.email || localStorage.getItem('email') || '';
 
   const categories = [
     { id: 'all', label: 'All Skills', icon: '🌟' },
@@ -577,7 +590,7 @@ function SkillSwap() {
                   <span>🤝</span>
                   {skill.availability === 'Available' ? 'Connect' : 'Unavailable'}
                 </button>
-                {(skill.userEmail === userEmail || isAdmin) && (
+                {isAdmin && (
                   <button
                     onClick={() => handleDelete(skill._id)}
                     style={{
